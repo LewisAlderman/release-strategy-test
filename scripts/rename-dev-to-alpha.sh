@@ -130,7 +130,5 @@ print_success "Deleted old dev branch: $CURRENT_BRANCH"
 print_success "✅ Branch rename completed successfully!"
 echo
 print_status "Summary:"
-echo "  Previous dev branch: $CURRENT_BRANCH"
-echo "  New alpha branch: $ALPHA_BRANCH"
-echo
-print_status "You are now on: $ALPHA_BRANCH"
+echo "  $CURRENT_BRANCH → $ALPHA_BRANCH"
+echo -e "${GREEN}  Checked out on branch: $ALPHA_BRANCH${NC}"
