@@ -35,12 +35,23 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
     exit 1
 fi
 
-# Check if we have uncommitted or unpushed changes
+# Check if we have uncommitted changes
 if ! test -z "$(git status --porcelain)"; then
-    print_warning "You have uncommitted or unpushed changes. Please commit and push them before proceeding."
+    print_warning "You have uncommitted changes. Please commit them before proceeding."
     git status --short
-    print_error "Aborted. Please commit and push your changes first."
+    print_error "Aborted. Please commit your changes first."
     exit 1
+fi
+
+# Check if we have unpushed commits
+if ! test -z "$(git status --porcelain --branch)"; then
+    AHEAD=$(git status --porcelain --branch | grep -E '^##.*ahead' | sed 's/.*ahead \([0-9]*\).*/\1/')
+    if [ -n "$AHEAD" ] && [ "$AHEAD" -gt 0 ]; then
+        print_warning "You have $AHEAD unpushed commit(s). Please push them before proceeding."
+        git status --short --branch
+        print_error "Aborted. Please push your commits first."
+        exit 1
+    fi
 fi
 
 # Get current branch
