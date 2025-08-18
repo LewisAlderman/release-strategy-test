@@ -97,19 +97,15 @@ git push origin "$ALPHA_BRANCH"
 
 print_success "Created alpha branch: $ALPHA_BRANCH"
 
-# Switch back to the old dev branch to delete it
-git checkout "$CURRENT_BRANCH"
-
 print_status "Deleting old dev branch..."
 
-# Delete the old dev branch locally and remotely
-git branch -D "$CURRENT_BRANCH"
+# Delete the old dev branch remotely first
 git push origin --delete "$CURRENT_BRANCH"
 
-print_success "Deleted old dev branch: $CURRENT_BRANCH"
+# Delete the old dev branch locally (we're already on alpha branch)
+git branch -D "$CURRENT_BRANCH"
 
-# Switch to the alpha branch
-git checkout "$ALPHA_BRANCH"
+print_success "Deleted old dev branch: $CURRENT_BRANCH"
 
 print_success "✅ Branch rename completed successfully!"
 echo
