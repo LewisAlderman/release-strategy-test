@@ -35,6 +35,21 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
     exit 1
 fi
 
+# Check if GitHub CLI is installed
+if ! command -v gh > /dev/null 2>&1; then
+    print_error "GitHub CLI (gh) is not installed."
+    print_error "Please install it first:"
+    print_error "  macOS: brew install gh"
+    exit 1
+fi
+
+# Check if GitHub CLI is authenticated
+if ! gh auth status > /dev/null 2>&1; then
+    print_error "GitHub CLI is not authenticated."
+    print_error "Please run 'gh auth login' first to authenticate."
+    exit 1
+fi
+
 # Check if we have uncommitted changes
 if ! test -z "$(git status --porcelain)"; then
     print_warning "You have uncommitted changes. Please commit them before proceeding."
@@ -96,6 +111,11 @@ git checkout -b "$ALPHA_BRANCH"
 git push origin "$ALPHA_BRANCH"
 
 print_success "Created alpha branch: $ALPHA_BRANCH"
+
+print_status "Updating default branch to alpha branch..."
+
+# Update the default branch to the alpha branch before deleting dev
+gh repo edit --default-branch "$ALPHA_BRANCH"
 
 print_status "Deleting old dev branch..."
 
