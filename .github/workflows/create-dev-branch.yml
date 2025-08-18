@@ -1,5 +1,8 @@
 name: Create New Dev Branch
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
