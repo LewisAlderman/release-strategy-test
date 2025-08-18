@@ -35,11 +35,11 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
     exit 1
 fi
 
-# Check if we have uncommitted changes
-if ! git diff-index --quiet HEAD --; then
-    print_warning "You have uncommitted changes. Please commit or stash them before proceeding."
+# Check if we have uncommitted or unpushed changes
+if ! test -z "$(git status --porcelain)"; then
+    print_warning "You have uncommitted or unpushed changes. Please commit and push them before proceeding."
     git status --short
-    print_error "Aborted. Please commit your changes first."
+    print_error "Aborted. Please commit and push your changes first."
     exit 1
 fi
 
