@@ -5,84 +5,30 @@
 
 set -e  # Exit on any error
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Function to print colored output
-print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
-
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
+# Source shared utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/shared/utils.sh"
 
 # Check if we're in a git repository
-if ! git rev-parse --git-dir > /dev/null 2>&1; then
-    print_error "Not in a git repository. Please run this script from your project root."
-    exit 1
-fi
+check_in_git_repo
 
-# Check if GitHub CLI is installed
-if ! command -v gh > /dev/null 2>&1; then
-    print_error "GitHub CLI (gh) is not installed."
-    print_error "Please install it first:"
-    print_error "  macOS: brew install gh"
-    exit 1
-fi
+# Check if GitHub CLI is installed and authenticated
+check_gh_cli
 
-# Check if GitHub CLI is authenticated
-if ! gh auth status > /dev/null 2>&1; then
-    print_error "GitHub CLI is not authenticated."
-    print_error "Please run 'gh auth login' first to authenticate."
-    exit 1
-fi
-
-# Check if we have uncommitted changes
-if ! test -z "$(git status --porcelain)"; then
-    print_warning "You have uncommitted changes. Please commit them before proceeding."
-    git status --short
-    print_error "Aborted. Please commit your changes first."
-    exit 1
-fi
-
-# Check if we have unpushed commits
-if ! test -z "$(git status --porcelain --branch)"; then
-    AHEAD=$(git status --porcelain --branch | grep -E '^##.*ahead' | sed 's/.*ahead \([0-9]*\).*/\1/')
-    if [ -n "$AHEAD" ] && [ "$AHEAD" -gt 0 ]; then
-        print_warning "You have $AHEAD unpushed commit(s). Please push them before proceeding."
-        git status --short --branch
-        print_error "Aborted. Please push your commits first."
-        exit 1
-    fi
-fi
+# Check if we have uncommitted or unpushed changes
+check_uncommitted_changes
+check_unpushed_commits
 
 # Get current branch
 CURRENT_BRANCH=$(git branch --show-current)
 print_status "Current branch: $CURRENT_BRANCH"
 
 # Verify it's a @dev branch
-if [[ ! "$CURRENT_BRANCH" =~ ^v[0-9]+\.[0-9]+\.[0-9]+@dev$ ]]; then
-    print_error "Current branch '$CURRENT_BRANCH' is not a valid @dev branch"
-    print_error "Expected format: v<major>.<minor>.<patch>@dev"
-    exit 1
-fi
+validate_semantic_release_branch_format "$CURRENT_BRANCH" "dev"
 
 # Extract version from branch name
-VERSION=$(echo "$CURRENT_BRANCH" | sed 's/v\([0-9]*\.[0-9]*\.[0-9]*\)@dev/\1/')
-ALPHA_BRANCH="v${VERSION}@alpha"
+read -r CURRENT_VERSION MAJOR MINOR PATCH RELEASE <<< "$(parse_branch_versioning "$CURRENT_BRANCH")"
+ALPHA_BRANCH="v${CURRENT_VERSION}@alpha"
 
 print_status "Will rename: $CURRENT_BRANCH → $ALPHA_BRANCH"
 
@@ -96,7 +42,7 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 # Check if alpha branch already exists
-if git show-ref --verify --quiet refs/remotes/origin/$ALPHA_BRANCH; then
+if branch_exists_remotely "$ALPHA_BRANCH"; then
     print_warning "Branch $ALPHA_BRANCH already exists remotely."
     print_error "Aborted."
     exit 1
@@ -132,3 +78,22 @@ echo
 print_status "Summary:"
 echo "  $CURRENT_BRANCH → $ALPHA_BRANCH"
 echo -e "${GREEN}  Checked out on branch: $ALPHA_BRANCH${NC}"
+
+# Check if we need to create a new dev branch
+print_status "Checking if new dev branch is needed..."
+
+# Source the shared script to check if dev branch exists
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if source "$SCRIPT_DIR/shared/check-dev-branch-exists.sh"; then
+    print_status "Newer dev branch already exists, skipping creation."
+else
+    print_status "No newer dev branch found, creating one now..."
+    
+    # Call the create-dev-branch script
+    if "$SCRIPT_DIR/create-dev-branch.sh"; then
+        print_success "✅ New dev branch created and set as default!"
+        print_status "You can now switch to the new dev branch to continue development."
+    else
+        print_warning "Failed to create new dev branch. You may need to create it manually."
+    fi
+fi
