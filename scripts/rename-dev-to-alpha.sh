@@ -84,13 +84,13 @@ print_status "Checking if new dev branch is needed..."
 
 # Source the shared script to check if dev branch exists
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if source "$SCRIPT_DIR/check-dev-branch-exists.sh"; then
+if source "$SCRIPT_DIR/shared/check-dev-branch-exists.sh"; then
     print_status "Newer dev branch already exists, skipping creation."
 else
     print_status "No newer dev branch found, creating one now..."
     
     # Call the create-dev-branch script
-    if "$SCRIPT_DIR/create-dev-branch.sh"; then
+    if "$SCRIPT_DIR/shared/create-dev-branch.sh"; then
         print_success "✅ New dev branch created and set as default!"
         print_status "You can now switch to the new dev branch to continue development."
     else
