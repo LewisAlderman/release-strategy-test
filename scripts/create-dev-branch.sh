@@ -25,7 +25,7 @@ validate_semantic_release_branch_format "$CURRENT_BRANCH" "alpha"
 read -r CURRENT_VERSION MAJOR MINOR PATCH RELEASE <<< "$(parse_branch_versioning "$CURRENT_BRANCH")"
 
 # Calculate what the next dev branch should be (increment minor, reset patch)
-NEXT_DEV_BRANCH="v${MAJOR}.${MINOR + 1}.0@dev"
+NEXT_DEV_BRANCH="v${MAJOR}.$((MINOR + 1)).0@dev"
 
 print_status "Current alpha version: $CURRENT_VERSION"
 print_status "Will create new dev branch: $NEXT_DEV_BRANCH"

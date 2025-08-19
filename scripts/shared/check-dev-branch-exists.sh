@@ -22,7 +22,7 @@ validate_semantic_release_branch_format "$CURRENT_BRANCH" "alpha"
 read -r CURRENT_VERSION MAJOR MINOR PATCH RELEASE <<< "$(parse_branch_versioning "$CURRENT_BRANCH")"
 
 # Calculate what the next dev branch should be (increment minor, reset patch)
-NEXT_DEV_BRANCH="v${MAJOR}.${MINOR + 1}.0@dev"
+NEXT_DEV_BRANCH="v${MAJOR}.$((MINOR + 1)).0@dev"
 
 print_status "Current alpha version: $CURRENT_VERSION"
 print_status "Checking if $NEXT_DEV_BRANCH exists..."
@@ -30,8 +30,16 @@ print_status "Checking if $NEXT_DEV_BRANCH exists..."
 # Check if the next dev branch exists remotely
 if branch_exists_remotely "$NEXT_DEV_BRANCH"; then
     print_success "Found existing dev branch: $NEXT_DEV_BRANCH"
-    exit 0  # Success - dev branch exists
+    if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+        exit 0
+    else
+        return 0
+    fi
 else
     print_status "No existing dev branch found for $NEXT_DEV_BRANCH"
-    exit 1  # Failure - dev branch doesn't exist
+    if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+        exit 1
+    else
+        return 1
+    fi
 fi
