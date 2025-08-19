@@ -86,6 +86,24 @@ print_status "Checking if new dev branch is needed..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if source "$SCRIPT_DIR/shared/check-dev-branch-exists.sh"; then
     print_status "Newer dev branch already exists, skipping creation."
+    print_status "Setting new dev branch as default..."
+
+    NEXT_DEV_BRANCH="v${MAJOR}.$((MINOR + 1)).0@dev"
+
+    # Set the new dev branch as the repository default
+    gh repo edit --default-branch "$NEXT_DEV_BRANCH"
+
+    print_success "Set $NEXT_DEV_BRANCH as default branch"
+
+    echo
+    read -p "Do you want to check out the new dev branch ($NEXT_DEV_BRANCH) now? (Y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Nn]$ ]]; then
+        print_status "Staying on current branch: $CURRENT_BRANCH"
+    else
+        git checkout "$NEXT_DEV_BRANCH"
+        echo -e "${GREEN}  Checked out on branch: $NEXT_DEV_BRANCH${NC}"
+    fi
 else
     print_status "No newer dev branch found, creating one now..."
     
