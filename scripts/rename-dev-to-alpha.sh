@@ -83,7 +83,6 @@ echo -e "${GREEN}  Checked out on branch: $ALPHA_BRANCH${NC}"
 print_status "Checking if new dev branch is needed..."
 
 # Source the shared script to check if dev branch exists
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if source "$SCRIPT_DIR/shared/check-dev-branch-exists.sh"; then
     print_status "Newer dev branch already exists, skipping creation."
 else
