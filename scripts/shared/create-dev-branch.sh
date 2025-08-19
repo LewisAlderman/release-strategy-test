@@ -49,10 +49,10 @@ fi
 print_status "Creating new dev branch from current alpha branch..."
 
 # Create the new dev branch
-git checkout -b "$NEXT_DEV_BRANCH"
+git branch "$NEXT_DEV_BRANCH"
 
 # Push the new dev branch
-git push origin "$NEXT_DEV_BRANCH"
+git push -u origin "$NEXT_DEV_BRANCH"
 
 print_success "Created dev branch: $NEXT_DEV_BRANCH"
 
@@ -63,10 +63,13 @@ gh repo edit --default-branch "$NEXT_DEV_BRANCH"
 
 print_success "Set $NEXT_DEV_BRANCH as default branch"
 
-print_success "✅ New dev branch created successfully!"
 echo
-print_status "Summary:"
-echo "  Created: $NEXT_DEV_BRANCH from $CURRENT_BRANCH"
-echo "  Set as default branch: $NEXT_DEV_BRANCH"
+read -p "Do you want to check out the new dev branch ($NEXT_DEV_BRANCH) now? (Y/n): " -n 1 -r
 echo
-print_status "You are now on: $NEXT_DEV_BRANCH"
+if [[ $REPLY =~ ^[Nn]$ ]]; then
+    print_status "Staying on current branch: $CURRENT_BRANCH"
+else
+    git checkout "$NEXT_DEV_BRANCH"
+    echo -e "${GREEN}  Checked out on branch: $NEXT_DEV_BRANCH${NC}"
+fi
+

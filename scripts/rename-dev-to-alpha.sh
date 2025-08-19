@@ -91,8 +91,7 @@ else
     
     # Call the create-dev-branch script
     if "$SCRIPT_DIR/create-dev-branch.sh"; then
-        print_success "✅ New dev branch created and set as default!"
-        print_status "You can now switch to the new dev branch to continue development."
+        exit 0
     else
         print_warning "Failed to create new dev branch. You may need to create it manually."
     fi
