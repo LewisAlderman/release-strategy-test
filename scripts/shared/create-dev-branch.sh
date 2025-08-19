@@ -7,7 +7,7 @@ set -e  # Exit on any error
 
 # Source shared utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/shared/utils.sh"
+source "$SCRIPT_DIR/utils.sh"
 
 # Check if we're in a git repository
 check_in_git_repo
